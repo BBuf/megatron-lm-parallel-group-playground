@@ -14,6 +14,9 @@ python3 playground.py
 
 then open the link created by gradio.
 
+
+You can also try [this](https://82dd90f8a1dfbf75d1.gradio.live/) temporary link.
+
 ### 3. display example
 
 #### 3.1 Data Parallelism Group
