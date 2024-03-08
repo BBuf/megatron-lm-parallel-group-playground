@@ -35,6 +35,8 @@ then open the link created by gradio.
 ## Plan
 - [ ] 2D Parallelism Group support
 - [ ] 3D Parallelism Group support
+- [ ] Zero
+- [ ] Collective Communication Display
 
 contributions and issues are welcome.
 
