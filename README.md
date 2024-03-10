@@ -19,7 +19,7 @@ You can also try [this](https://f1afaf41093e453206.gradio.live) temporary link.
 
 ### 3. display example
 
-![图片](https://github.com/CC-LLM/megatron-lm/assets/35585791/32a22470-8b5e-44c2-aa42-896effa424b1)
+![图片](https://github.com/BBuf/megatron-lm-parallel-group-playground/assets/35585791/2475ed38-8931-4a3b-82d8-eff92f2d7497)
 
 
 ## Plan
