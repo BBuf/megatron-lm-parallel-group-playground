@@ -15,29 +15,16 @@ python3 playground.py
 then open the link created by gradio.
 
 
-You can also try [this](https://82dd90f8a1dfbf75d1.gradio.live/) temporary link.
+You can also try [this](https://f1afaf41093e453206.gradio.live) temporary link.
 
 ### 3. display example
 
-#### 3.1 Data Parallelism Group
+![图片](https://github.com/CC-LLM/megatron-lm/assets/35585791/32a22470-8b5e-44c2-aa42-896effa424b1)
 
-![1.jpg](image/data-parallel-group.jpg)
-
-#### 3.2 Tensor Parallelism Group
-
-![2.jpg](image/tensor-parallel-group.jpg)
-
-#### 3.3 Pipeline Parallelism Group
-
-![3.jpg](image/pipline-parallel-group.jpg)
-
-#### 3.4 Context Parallelism Group
-
-![4.jpg](image/context-parallel-group.jpg)
 
 ## Plan
-- [ ] 2D Parallelism Group support
-- [ ] 3D Parallelism Group support
+- [x] 2D Parallelism Group support (DP+TP, DP+PP)
+- [x] 3D Parallelism Group support (DP+TP+PP)
 - [ ] Zero
 - [ ] Collective Communication Display
 

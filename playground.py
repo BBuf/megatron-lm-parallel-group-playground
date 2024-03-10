@@ -70,33 +70,87 @@ def generate_context_parallel_groups(world_size, context_parallel_size, tensor_m
                 context_parallel_group_ranks.append(list(ranks))
     return context_parallel_group_ranks
 
-def plot_parallel_groups(groups, title="Parallel Groups"):
-    """
-    Plot the parallel groups with different colors for each group, with increased spacing between blocks,
-    and a line separating Node0 and Node1, with labels.
-    """
+def plot_parallel_groups(title="Parallel Groups", dp_groups=None, tp_groups=None, pp_groups=None, cp_groups=None):
     # Initialize a figure
     fig, ax = plt.subplots(figsize=(8, 6))
     
     # Define the spacing between blocks and their size
     block_size = 700  # Size of the blocks in the scatter plot
     spacing = 1.5  # Spacing multiplier between blocks
-    
+    if cp_groups is None:
+        cp_offset_x = 0
+        cp_offset_y = 0
+        tp_offset_x = 0.2
+        tp_offset_y = -0.2
+        if tp_groups:
+            pp_offset_x = 0.4
+            pp_offset_y = -0.4
+        else:
+            pp_offset_x = 0.2
+            pp_offset_y = -0.2
+    else:
+        cp_offset_x = 0.2
+        cp_offset_y = -0.2
+        tp_offset_x = 0.4
+        tp_offset_y = -0.4
+        if tp_groups:
+            pp_offset_x = 0.6
+            pp_offset_y = -0.6
+        else:
+            pp_offset_x = 0.4
+            pp_offset_y = -0.4
+
     # Adjust the grid layout to map GPU ranks from top-left to bottom-right
     num_cols = 4  # Number of columns in the grid
     x_positions = np.tile(np.arange(num_cols), num_cols) * spacing
     y_positions = np.repeat(np.arange(num_cols), num_cols)[::-1] * spacing  # Reverse to start from top
 
-    # Plot each group with a unique color
-    colors = plt.cm.tab20(np.linspace(0, 1, len(groups)))  # Generate distinct colors
-    for group_idx, group in enumerate(groups):
+    dp_colors = plt.cm.tab20(np.linspace(0, 1, len(dp_groups)))
+
+    # 使用tab20b提高颜色区分度
+    if tp_groups is not None:
+        tp_colors = plt.cm.tab20b(np.linspace(0, 1, len(tp_groups)))
+
+    # 如果需要更多颜色，可以考虑结合使用tab20b和tab20c
+    if pp_groups is not None:
+        pp_colors = plt.cm.tab20c(np.linspace(0, 1, len(pp_groups)))
+
+    if cp_groups is not None:
+        cp_colors = plt.cm.tab20c(np.linspace(0, 1, len(cp_groups)))
+
+    # Plot DP groups with unique colors
+    for group_idx, group in enumerate(dp_groups):
         for rank in group:
-            # Calculate position based on the rank's order in a sequential layout
             x = x_positions[rank % (num_cols*num_cols)]
             y = y_positions[rank % (num_cols*num_cols)]
-            ax.scatter(x, y, s=block_size, color=colors[group_idx], edgecolor='black', zorder=5)
-            # Add GPU label inside the block
-            ax.text(x, y, f'GPU{rank}', ha='center', va='center', color='white', fontsize=8, zorder=6, fontweight='bold')
+            ax.scatter(x, y, s=block_size, color=dp_colors[group_idx], edgecolor='black', zorder=5)
+            ax.text(x, y, f'DP{rank}', ha='center', va='center', color='white', fontsize=8, zorder=6, fontweight='bold')
+    
+    if cp_groups is not None:
+        for group_idx, group in enumerate(cp_groups):
+            for rank in group:
+                x = x_positions[rank % (num_cols*num_cols)] + cp_offset_x
+                y = y_positions[rank % (num_cols*num_cols)] + cp_offset_y
+                ax.scatter(x, y, s=block_size, color=cp_colors[group_idx], edgecolor='black', zorder=5)
+                ax.text(x, y, f'CP{rank}', ha='center', va='center', color='white', fontsize=8, zorder=6, fontweight='bold')
+    
+    # Plot TP groups if provided
+    if tp_groups is not None:
+        for group_idx, group in enumerate(tp_groups):
+            for rank in group:
+                x = x_positions[rank % (num_cols*num_cols)] + tp_offset_x
+                y = y_positions[rank % (num_cols*num_cols)] + tp_offset_y
+                ax.scatter(x, y, s=block_size, color=tp_colors[group_idx], edgecolor='black', zorder=5)
+                ax.text(x, y, f'TP{rank}', ha='center', va='center', color='white', fontsize=8, zorder=6, fontweight='bold')
+
+    # Plot PP groups if provided
+    if pp_groups is not None:
+        for group_idx, group in enumerate(pp_groups):
+            for rank in group:
+                x = x_positions[rank % (num_cols*num_cols)] + pp_offset_x
+                y = y_positions[rank % (num_cols*num_cols)] + pp_offset_y
+                ax.scatter(x, y, s=block_size, color=pp_colors[group_idx], edgecolor='black', zorder=5)
+                ax.text(x, y, f'PP{rank}', ha='center', va='center', color='white', fontsize=8, zorder=6, fontweight='bold')
 
     # Draw a separating line between Node0 and Node1
     mid_y_position = np.max(y_positions) / 2
@@ -119,32 +173,49 @@ def create_interface():
         world_size = 16  # Fixed world size for 2 machines with 8 GPUs each
         
         description = descriptions.get(parallel_group_type, "Invalid parallel group type")
-        if parallel_group_type == 'Data Parallel':
-            groups = generate_data_parallel_groups(world_size, tensor_model_parallel_size, pipeline_model_parallel_size, context_parallel_size)
-        elif parallel_group_type == 'Tensor Model Parallel':
-            assert pipeline_model_parallel_size == 1, "In 2D Tensor Model Parallel, pipeline_model_parallel_size must equals to 1."
-            groups = generate_tensor_model_parallel_groups(world_size, tensor_model_parallel_size)
-        elif parallel_group_type == 'Pipeline Parallel':
-            assert tensor_model_parallel_size == 1, "In 1D Pipeline Parallel, tensor_model_parallel_size must equals to 1."
-            groups = generate_pipeline_parallel_groups(world_size, pipeline_model_parallel_size)
-        elif parallel_group_type == 'Context Parallel':
-            assert tensor_model_parallel_size == 1 and pipeline_model_parallel_size == 1, "In 1D Context Parallel, tensor_model_parallel_size and pipeline_model_parallel_size must equals to 1."
-            groups = generate_context_parallel_groups(world_size, context_parallel_size, tensor_model_parallel_size, pipeline_model_parallel_size)
-        else:
-            raise ValueError('Invalid parallel group type')
-        # Convert groups list to a string representation
-        groups_list_str = "\n".join([f"Group {idx + 1}: {group}" for idx, group in enumerate(groups)])
-        # Prepare the text for display
-        text_to_display = f"Parallel Groups:\n{groups_list_str}\n\n{description}"
+        
+        # Initialize groups to None
+        data_groups = tp_groups = pp_groups = cp_groups = None
+        
+        if parallel_group_type in ['Data Parallel', 'DP+TP', 'DP+PP', 'DP+TP+PP']:
+            data_groups = generate_data_parallel_groups(world_size, tensor_model_parallel_size, pipeline_model_parallel_size, context_parallel_size)
+        if parallel_group_type in ['Tensor Model Parallel', 'DP+TP', 'DP+TP+PP']:
+            tp_groups = generate_tensor_model_parallel_groups(world_size, tensor_model_parallel_size)
+        if parallel_group_type in ['Pipeline Parallel', 'DP+PP', 'DP+TP+PP']:
+            pp_groups = generate_pipeline_parallel_groups(world_size, pipeline_model_parallel_size)
+        if parallel_group_type in ['Context Parallel', ]:
+            cp_groups = generate_context_parallel_groups(world_size, context_parallel_size, tensor_model_parallel_size, pipeline_model_parallel_size)
+
+        # Prepare text description for display
+        groups_list_str = ""
+        if data_groups:
+            groups_list_str += "Data Parallel Groups:\n"
+            groups_list_str += "\n".join([f"Data Group {idx + 1}: {group}" for idx, group in enumerate(data_groups)])
+            groups_list_str += "\n--------------------------------------\n"
+        if tp_groups:
+            groups_list_str += "Tensor Model Parallel Groups:\n"
+            groups_list_str += "\n".join([f"Tensor Group {idx + 1}: {group}" for idx, group in enumerate(tp_groups)])
+            groups_list_str += "\n--------------------------------------\n"
+        if pp_groups:
+            groups_list_str += "Pipeline Model Parallel Groups:\n"
+            groups_list_str += "\n".join([f"Pipeline Group {idx + 1}: {group}" for idx, group in enumerate(pp_groups)])
+            groups_list_str += "\n--------------------------------------\n"
+        if cp_groups:
+            groups_list_str += "Context Parallel Groups:\n"
+            groups_list_str += "\n".join([f"Context Group {idx + 1}: {group}" for idx, group in enumerate(cp_groups)])
+            groups_list_str += "\n--------------------------------------\n"
+
+        text_to_display = f"==========Parallel Groups Display==========\n\n{groups_list_str}\n\n{description}"
 
         # Generate the figure with the parallel groups
-        fig = plot_parallel_groups(groups, f"{parallel_group_type} Groups")
+        fig = plot_parallel_groups(f"{parallel_group_type} Groups", data_groups if data_groups else [], tp_groups=tp_groups, pp_groups=pp_groups, cp_groups=cp_groups)
+        
         return fig, text_to_display
 
     iface = gr.Interface(
         fn=update_plot,
         inputs=[
-            gr.Dropdown(['Data Parallel', 'Tensor Model Parallel', 'Pipeline Parallel', 'Context Parallel'], label="Parallel Group Type"),
+            gr.Dropdown(['Data Parallel', 'Tensor Model Parallel', 'Pipeline Parallel', 'Context Parallel', 'DP+TP', 'DP+PP', 'DP+TP+PP'], label="Parallel Group Type"),
             gr.Slider(1, 8, step=1, label="Tensor Model Parallel Size"),
             gr.Slider(1, 8, step=1, label="Pipeline Model Parallel Size"),
             gr.Slider(1, 8, step=1, label="Context Parallel Size"),
@@ -155,7 +226,7 @@ def create_interface():
             "text"
         ],
         title="Megatron-LM Parallel Group Visualization",
-        description="Select parallel sizes and types to visualize different parallel groups with distinct colors. Note that The size of data parallelism is automatically calculated based on world_size (which is stable at 16 here) as well as tensor_model_parallel_size, pipeline_model_parallel_size, and context_parallel_size.",
+        description="Select parallel sizes and types to visualize different parallel groups with distinct colors. This includes combinations of Data Parallel (DP), Tensor Model Parallel (TP), and Pipeline Parallel (PP). Note that the size of data parallelism is automatically calculated based on world_size (which is stable at 16 here) as well as tensor_model_parallel_size, pipeline_model_parallel_size, and context_parallel_size.",
         live=True
     )
     
