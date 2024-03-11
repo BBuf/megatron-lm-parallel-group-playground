@@ -25,6 +25,7 @@ You can also try [this](https://f1afaf41093e453206.gradio.live) temporary link.
 ## Plan
 - [x] 2D Parallelism Group support (DP+TP, DP+PP)
 - [x] 3D Parallelism Group support (DP+TP+PP)
+- [x] 3D Parallelism Group support (CP+DP, CP+TP, CP+PP, CP+TP+PP)
 - [ ] Zero
 - [ ] Collective Communication Display
 
