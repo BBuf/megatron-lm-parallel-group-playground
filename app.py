@@ -271,4 +271,4 @@ def create_interface():
 
 # Create and launch the interface
 iface = create_interface()
-iface.launch(share=False)
+iface.launch(share=True)

@@ -9,17 +9,17 @@ This is a playground for parallelism group display in Megatron-LM.
 ### 2. deploy
 
 ```python
-python3 playground.py
+python3 app.py
 ```
 
 then open the link created by gradio.
 
 
-You can also try [this](https://f1afaf41093e453206.gradio.live) temporary link.
+You can also visit [huggingface space link]( https://huggingface.co/spaces/BBuf/megatron-lm-parallel-group-playground) .
 
 ### 3. display example
 
-![图片](https://github.com/BBuf/megatron-lm-parallel-group-playground/assets/35585791/2475ed38-8931-4a3b-82d8-eff92f2d7497)
+![图片](https://github.com/BBuf/megatron-lm-parallel-group-playground/assets/35585791/2804c4db-37a2-4575-a8bb-409dd19d961f)
 
 
 ## Plan
