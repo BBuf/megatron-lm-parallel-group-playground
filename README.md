@@ -1,3 +1,5 @@
+> 我也维护了一个cuda以及LLM学习仓库 https://github.com/BBuf/how-to-optim-algorithm-in-cuda , 有需要的小伙伴可以**点一点star**
+
 ## Megatron-LM Parallel Group Playground
 
 This is a playground for parallelism group display in Megatron-LM.
