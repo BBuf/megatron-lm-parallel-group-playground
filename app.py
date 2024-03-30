@@ -38,23 +38,6 @@ def generate_context_data_parallel_groups(world_size, tensor_model_parallel_size
     
     return all_data_parallel_group_ranks_with_cp
 
-def generate_context_data_parallel_groups(world_size, tensor_model_parallel_size, pipeline_model_parallel_size, context_parallel_size):
-    """
-    Generate data parallel groups considering context parallelism.
-    """
-    assert world_size % (pipeline_model_parallel_size * tensor_model_parallel_size * context_parallel_size) == 0, "world_size must be divisible by the product of pipeline_model_parallel_size, tensor_model_parallel_size, and context_parallel_size"
-    all_data_parallel_group_ranks_with_cp = []
-    num_pipeline_model_parallel_groups = world_size // pipeline_model_parallel_size
-
-    for i in range(pipeline_model_parallel_size):
-        start_rank = i * num_pipeline_model_parallel_groups
-        end_rank = (i + 1) * num_pipeline_model_parallel_groups
-        for j in range(tensor_model_parallel_size):
-            ranks_with_cp = range(start_rank + j, end_rank, tensor_model_parallel_size)
-            all_data_parallel_group_ranks_with_cp.append(list(ranks_with_cp))
-    
-    return all_data_parallel_group_ranks_with_cp
-
 def generate_tensor_model_parallel_groups(world_size, tensor_model_parallel_size):
     """
     Generate model parallel groups based on tensor model parallel size.
